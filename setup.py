@@ -5,7 +5,7 @@ with open("README.md", "r") as file:
     long_description = file.read()
 
 setuptools.setup(
-    name="python-gsi",
+    name="python_gsi",
     version="0.0.1",
     author="Alve Svarén",
     author_email="alve@hotmail.se",

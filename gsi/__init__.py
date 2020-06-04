@@ -4,7 +4,7 @@ from signal import pause
 from threading import Thread
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
-PORT = 3000
+PORT = 3331
 IP = "127.0.0.1"
 TOKEN = "S8RL9Z6Y22TYQK45JB4V8PHRJJMD9DS9"
 
@@ -38,11 +38,11 @@ class GSIHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
 
-
 class GSIConnection(Thread):
     """
     An object for starting and handling the required events and the http server for game state integration.
     """
+
     def __init__(self):
         self.server = GSIServer(post_callback=self.handle_post)
         self.listeners = []
@@ -50,6 +50,34 @@ class GSIConnection(Thread):
 
     def run(self):
         self.server.serve_forever()
+
+    def start(self, blocking=True):
+        """
+        Start the http server and start blocking unless `blocking=False`
+
+        Blocking should be set to `False` if you are keeping the program alive yourself 
+        
+        Example with `blocking=False`: 
+        ```
+        import time
+
+        connection = GSIConnection()
+        current_data = {}
+
+        @connection.on_post
+        def handler(data):
+            current_data = data
+
+        connection.start(blocking=False)
+
+        while True:
+            time.sleep(2)
+            print(current_data)
+        ```
+        """
+        super().start()
+        if blocking:
+            self.block()
 
     def block(self):
         pause()
@@ -61,14 +89,14 @@ class GSIConnection(Thread):
     def add_post_listener(self, func):
         self.listeners.append(func)
 
-    def on_post(self, func):
+    def on_data(self, func):
         """
-        Decorator for on_post events
+        Decorator for handling new data from post requests
         ```
         connection = GSIConnection()
 
-        @connection.on_post
-        def handle_post(data):
+        @connection.on_data
+        def handle_data(data):
             print(data)
         ```
         """
